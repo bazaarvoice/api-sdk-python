@@ -123,8 +123,9 @@ class SmartlingTranslations:
             # Loop through files in directory recursively
             for root, dirs, files in os.walk(args.dir):
                 for name in files:
-                    relativeUri = args.uriPath + self._getRelativePath(args.dir, root)
-                    self._uploadSourceFile(root, name, relativeUri, directives)
+                    if self._processFile(name):
+                        relativeUri = args.uriPath + self._getRelativePath(args.dir, root)
+                        self._uploadSourceFile(root, name, relativeUri, directives)
 
     def _uploadSourceFile(self, path, fileName, uriPath, directives=None):
         absFile = os.path.join(path, fileName)
@@ -165,8 +166,9 @@ class SmartlingTranslations:
             # Loop through files in directory recursively
             for root, dirs, files in os.walk(args.dir):
                 for name in files:
-                    relativeUri = args.uriPath + self._getRelativePath(args.dir, root)
-                    self._importTranslationFile(root, name, relativeUri, args.locale, directives, args.overwrite)
+                    if self._processFile(name):
+                        relativeUri = args.uriPath + self._getRelativePath(args.dir, root)
+                        self._importTranslationFile(root, name, relativeUri, args.locale, directives, args.overwrite)
 
     def _importTranslationFile(self, path, fileName, uriPath, locale, directives=None, overwrite=False):
         smartlingLocale = self._getSmartlingLocale(locale)
@@ -227,9 +229,10 @@ class SmartlingTranslations:
                 # Loop through files in directory recursively and get their translations from the server respectfully
                 for root, dirs, files in os.walk(args.dir):
                     for name in files:
-                        relativePath = self._getRelativePath(args.dir, root)
-                        if not self._getTranslationsFile(args.outputDir, relativePath, args.uriPath, name, smartlingLocale):
-                            allComplete = False
+                        if self._processFile(name):
+                            relativePath = self._getRelativePath(args.dir, root)
+                            if not self._getTranslationsFile(args.outputDir, relativePath, args.uriPath, name, smartlingLocale):
+                                allComplete = False
 
         if allComplete:
             logging.info("Successfully - all source files translated!")
@@ -266,14 +269,14 @@ class SmartlingTranslations:
 
     # Get Smartling locale from locale
     def _getSmartlingLocale(self, locale):
-        if self.args.localeMap:
+        if hasattr(self.args, 'localeMap'):
             if self.args.localeMap[locale]:
                 return self.args.localeMap[locale]
         return locale
 
     # Get locale from a Smartling locale
     def _getLocaleFromSmartlingLocale(self, smartlingLocale):
-        if self.args.localeMap:
+        if hasattr(self.args, 'localeMap'):
             for locale, slLocale in self.args.localeMap.iteritems():
                 if slLocale == smartlingLocale:
                     return locale
@@ -291,34 +294,21 @@ class SmartlingTranslations:
             relativePath += "/"
         return relativePath
 
-    # Auto detect Smartling file type
-    def _getFileType(self, file):
-        extension = os.path.splitext(file)[1][1:]
-        # Gettext .pot and .po files
-        if extension == "pot" or extension == "po":
-            return "gettext"
-        # HTML files
-        if extension == "html" or extension == "htm":
-            return "html"
-        # Java Properties
-        if extension == "properties":
-            return "javaProperties"
-        # Yaml files
-        if extension == "yml":
-            return "yaml"
-        # Supports .xlf, .xliff, and .xml files that use the XML Localization Interchange File Format (XLIFF)
-        if extension == ".xlf" or extension == "xliff":
-            return "xliff"
-        # Javascript files
-        if extension == "json" or extension == "js":
-            return "json"
-        # Qt Linguist TS format files
-        if extension == "ts":
-            return "qt"
-        # MadCap Flare ZIP packages
-        if extension == "zip":
-            return "madcap"
-        # All others where extension matches type
+    # Determine if file should be processed based on file filters applied in configuration
+    # returns boolean
+    def _processFile(self, name):
+        if not hasattr(self.args, 'filterFileExtensions'):
+            return True
+        extension = os.path.splitext(name)[1][1:]
+        return extension in self.args.filterFileExtensions
+
+    # Determine Smartling file type
+    def _getFileType(self, filename):
+        extension = os.path.splitext(filename)[1][1:]
+        if hasattr(self.args, 'extensionMap'):
+            for key, value in self.args.extensionMap.iteritems():
+                if extension in value.split(","):
+                    return key
         return extension
 
 
@@ -386,30 +376,49 @@ def main():
     if not args.uriPath.endswith('/'):
         args.uriPath += "/"
 
+    # Get API Key
     if not args.apiKey and config.has_section("smartling"):
         args.apiKey = config.get("smartling", "apiKey")
 
+    # Get Project ID
     if not args.projectId and config.has_section("smartling"):
         args.projectId = config.get("smartling", "projectId")
-
     if not args.apiKey or not args.projectId:
         raise ValueError("Smartling API Key and Project ID are required")
 
+    # Get Locales
     if config.has_section("locales"):
         locales = {}
         for name, value in config.items("locales"):
             locales[name] = value
         args.localeMap = locales
 
+    if config.has_section("extensions"):
+        extensions = {}
+        for name, value in config.items("extensions"):
+            extensions[name] = value
+        args.extensionMap = extensions
+
+    # Get file extension filters
+    if config.has_section("filters") and config.has_option("filters", "file_extensions"):
+        fileExtensions = config.get("filters", "file_extensions")
+        if fileExtensions and len(fileExtensions) > 0:
+            fileExtensionArray = fileExtensions.split(",")
+            if len(fileExtensionArray) > 0:
+                args.filterFileExtensions = fileExtensionArray
+
+    # Upload Command
     if args.sub_parser == "upload":
         directives = None
         if config.has_section("directives"):
             directives = config.items("directives")
         uploadSource(args, directives)
 
+    # Get Command
     if args.sub_parser == "get":
         getTranslations(args)
 
+    # Import Command
     if args.sub_parser == "import":
         directives = None
         if config.has_section("directives"):
