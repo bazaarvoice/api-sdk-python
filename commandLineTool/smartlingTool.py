@@ -248,7 +248,7 @@ class SmartlingTranslations:
         status = self.api.getStatus(sourceFile, smartlingLocale)
         percentComplete = self._getPercent(status.stringCount, status.completedStringCount)
 
-        if percentComplete < 100:
+        if percentComplete < 100 and not self.args.allowPartial:
             logging.info("Translated %s%% (%s): %s -> %s (skipping)", percentComplete, smartlingLocale, sourceFile, outputFile)
             return False
 
@@ -260,7 +260,7 @@ class SmartlingTranslations:
             f = open(outputFile, 'w')
             f.write(fileData)
 
-        return True
+        return percentComplete == 100
 
     # Get percentage
     def _getPercent(self, count, totalCount):
@@ -332,35 +332,36 @@ def importTranslations(args, directives=None):
 
 
 def main():
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+    logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
     parser = argparse.ArgumentParser(description="Smartling Translation Tool to upload, get, and import translation files")
-    parser.add_argument('-k', '--apiKey', dest="apiKey", help='Smartling API key (overrides configuration file value)')
-    parser.add_argument('-p', '--projectId', dest="projectId",
-                        help='Smartling project ID (overrides configuration file value)')
-    parser.add_argument('-c', '--config', dest="configFile", default="translation.cfg", help='Configuration file (default ./translation.cfg)')
+    parser.add_argument("-k", "--apiKey", dest="apiKey", help="Smartling API key (overrides configuration file value)")
+    parser.add_argument("-p", "--projectId", dest="projectId",
+                        help="Smartling project ID (overrides configuration file value)")
+    parser.add_argument("-c", "--config", dest="configFile", default="translation.cfg", help="Configuration file (default ./translation.cfg)")
 
     subparsers = parser.add_subparsers(dest="sub_parser", help="To see individual sub command help: 'subcommand -h'")
 
-    parser_upload = subparsers.add_parser('upload', help='Upload the (English) source')
-    parser_upload.add_argument('-d', '--dir', dest="dir", required=True, help='Path to English source directory or file')
-    parser_upload.add_argument('-u', '--uriPath', dest="uriPath", help='File URI path used in Smartling system')
-    parser_upload.add_argument('--run', dest="run", action='store_true', help='Run for real (default is noop)')
+    parser_upload = subparsers.add_parser("upload", help="Upload the (English) source")
+    parser_upload.add_argument("-d", "--dir", dest="dir", required=True, help="Path to English source directory or file")
+    parser_upload.add_argument("-u", "--uriPath", dest="uriPath", help="File URI path used in Smartling system")
+    parser_upload.add_argument("--run", dest="run", action="store_true", help="Run for real (default is noop)")
 
-    parser_get = subparsers.add_parser('get', help='Get the translations')
-    parser_get.add_argument('-d', '--dir', dest="dir", required=True, help='Path to English source directory of file')
-    parser_get.add_argument('-o', '--outputDir', dest="outputDir", required=True,
-                            help='Output directory where to save translated files. Stores each translation in their own sub-directory.')
-    parser_get.add_argument('-u', '--uriPath', dest="uriPath", help='File URI path used in Smartling system')
-    parser_get.add_argument('-l', '--locale', dest="locale", help='Locale to download (default is all)')
-    parser_get.add_argument('--run', dest="run", action='store_true', help='Run for real (default is noop)')
+    parser_get = subparsers.add_parser("get", help="Get the translations")
+    parser_get.add_argument("-d", "--dir", dest="dir", required=True, help="Path to English source directory of file")
+    parser_get.add_argument("-o", "--outputDir", dest="outputDir", required=True,
+                            help="Output directory where to save translated files. Stores each translation in their own sub-directory.")
+    parser_get.add_argument("-u", "--uriPath", dest="uriPath", help="File URI path used in Smartling system")
+    parser_get.add_argument("-l", "--locale", dest="locale", help="Locale to download (default is all)")
+    parser_get.add_argument("-p", "--allowPartial", dest="allowPartial", action="store_true", help="Allow translation not 100%% complete (default is false)")
+    parser_get.add_argument("--run", dest="run", action="store_true", help="Run for real (default is noop)")
 
-    parser_import = subparsers.add_parser('import', help='Import translations')
-    parser_import.add_argument('-d', '--dir', dest="dir", required=True, help='Path to translations directory or file')
-    parser_import.add_argument('-u', '--uriPath', dest="uriPath", help='File URI path used in Smartling system')
-    parser_import.add_argument('-l', '--locale', dest="locale", required=True, help='Locale to import')
-    parser_import.add_argument('-o', '--overwrite', dest="overwrite", action='store_true', help='Overwrite previous translations')
-    parser_import.add_argument('--run', dest="run", action='store_true', help='Run for real (default is noop)')
+    parser_import = subparsers.add_parser("import", help="Import translations")
+    parser_import.add_argument("-d", "--dir", dest="dir", required=True, help="Path to translations directory or file")
+    parser_import.add_argument("-u", "--uriPath", dest="uriPath", help="File URI path used in Smartling system")
+    parser_import.add_argument("-l", "--locale", dest="locale", required=True, help="Locale to import")
+    parser_import.add_argument("-o", "--overwrite", dest="overwrite", action="store_true", help="Overwrite previous translations")
+    parser_import.add_argument("--run", dest="run", action="store_true", help="Run for real (default is noop)")
 
     args = parser.parse_args()
 
