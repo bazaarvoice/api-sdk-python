@@ -9,8 +9,9 @@ import argparse
 import logging
 import ConfigParser
 
-lib_path = os.path.abspath('../')
-sys.path.append(lib_path)  # allow to import ../smartlingApiSdk/SmartlingFileApi
+# allow to import ../smartlingApiSdk/SmartlingFileApi
+lib_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + os.path.sep + os.path.pardir + os.path.sep)
+sys.path.append(lib_path)
 
 from smartlingApiSdk.SmartlingFileApi import SmartlingFileApiFactory
 from smartlingApiSdk.SmartlingDirective import SmartlingDirective
@@ -124,15 +125,15 @@ class SmartlingTranslations:
             for root, dirs, files in os.walk(args.dir):
                 for name in files:
                     if self._processFile(name):
-                        relativeUri = args.uriPath + self._getRelativePath(args.dir, root)
+                        relativeUri = args.uriPath + self._getRelativeUri(args.dir, root)
                         self._uploadSourceFile(root, name, relativeUri, directives)
 
     def _uploadSourceFile(self, path, fileName, uriPath, directives=None):
         absFile = os.path.join(path, fileName)
         logging.debug("Uploading: %s", absFile)
 
-        if not path.endswith('/'):
-            path += "/"
+        if not path.endswith(os.path.sep):
+            path += os.path.sep
 
         if self.args.run:
             uploadData = UploadData(path, fileName, self._getFileType(fileName), uriPath)
@@ -167,7 +168,7 @@ class SmartlingTranslations:
             for root, dirs, files in os.walk(args.dir):
                 for name in files:
                     if self._processFile(name):
-                        relativeUri = args.uriPath + self._getRelativePath(args.dir, root)
+                        relativeUri = args.uriPath + self._getRelativeUri(args.dir, root)
                         self._importTranslationFile(root, name, relativeUri, args.locale, directives, args.overwrite)
 
     def _importTranslationFile(self, path, fileName, uriPath, locale, directives=None, overwrite=False):
@@ -183,8 +184,8 @@ class SmartlingTranslations:
         absFile = os.path.join(path, fileName)
         if self.args.run:
             logging.debug("Importing translation (%s): %s", smartlingLocale, absFile)
-            if not path.endswith('/'):
-                path += "/"
+            if not path.endswith(os.path.sep):
+                path += os.path.sep
             uploadData = UploadData(path, fileName, self._getFileType(fileName), uriPath)
             uploadData.uri = uriPath + fileName
             if directives:
@@ -241,8 +242,8 @@ class SmartlingTranslations:
 
     def _getTranslationsFile(self, outputDir, relativePath, uriPath, fileName, smartlingLocale):
         args = self.args
-        sourceFile = uriPath + relativePath + fileName
-        outputFile = outputDir + "/" + self._getLocaleFromSmartlingLocale(smartlingLocale) + "/" + relativePath + fileName
+        sourceFile = uriPath + relativePath.replace('\\', '/') + fileName
+        outputFile = outputDir + os.path.sep + self._getLocaleFromSmartlingLocale(smartlingLocale) + os.path.sep + relativePath + fileName
 
         status = self.api.getStatus(sourceFile, smartlingLocale)
         percentComplete = self._getPercent(status.stringCount, status.completedStringCount)
@@ -288,11 +289,14 @@ class SmartlingTranslations:
     # returns subdir/path/file
     def _getRelativePath(self, rootDir, filePath):
         relativePath = filePath.replace(rootDir, "", 1)
-        if relativePath.startswith("/"):
+        if relativePath.startswith(os.path.sep):
             relativePath = relativePath[1:]
-        if len(relativePath) > 0 and not relativePath.endswith("/"):
-            relativePath += "/"
+        if len(relativePath) > 0 and not relativePath.endswith(os.path.sep):
+            relativePath += os.path.sep
         return relativePath
+
+    def _getRelativeUri(self, rootDir, filePath):
+        return self._getRelativePath(rootDir, filePath).replace('\\', '/')
 
     # Determine if file should be processed based on file filters applied in configuration
     # returns boolean

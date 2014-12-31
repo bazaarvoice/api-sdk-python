@@ -102,17 +102,16 @@ projectId = XXXXXXXX
 # Custom URI path (default "/files")
 uriPath = /files/config-ui
 
+[directives]
 # Smartling directives
 # See: https://docs.smartling.com/display/docs/Supported+File+Types
-[directives]
 translate_mode = all
 source_key_paths = {*}
-placeholder_format_custom = __\w+__
-placeholder_format_custom = \{{2,2}[\w\.]+\}{2,2}
+placeholder_format_custom = __\w+__|\{{2,2}[\w\.]+\}{2,2}
 variants_enabled = true
 
-# Locale Mapping - Use to map differences between project and Smartling locale codes
 [locales]
+# Locale Mapping - Use to map differences between project and Smartling locale codes
 en = en-US
 de = de-DE
 es = es-ES
@@ -120,6 +119,39 @@ fr = fr-FR
 ja = ja-JP
 pt = pt-PT
 pt_BR = pt-BR
+
+
+[filters]
+# Common delimited list of file extensions (default all files)
+file_extensions =
+
+
+[extensions]
+# Extension Mapping - Use to map differences between file types and Smartling file types
+
+# Gettext .pot and .po files
+gettext = pot,po
+
+# HTML files
+html = html,htm
+
+# Java Properties
+javaProperties = properties
+
+# Yaml files
+yaml = yml
+
+# Supports .xlf, .xliff, and .xml files that use the XML Localization Interchange File Format (XLIFF)
+xliff = xlf,xliff
+
+# Javascript files
+json = json,js
+
+# Qt Linguist TS format files
+qt = ts
+
+# MadCap Flare ZIP packages
+madcap = zip
 ```
 
 Examples
