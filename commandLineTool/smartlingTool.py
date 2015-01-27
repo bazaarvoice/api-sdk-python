@@ -232,8 +232,11 @@ class SmartlingTranslations:
                     for name in files:
                         if self._processFile(name):
                             relativePath = self._getRelativePath(args.dir, root)
-                            if not self._getTranslationsFile(args.outputDir, relativePath, args.uriPath, name, smartlingLocale):
-                                allComplete = False
+                            try:
+                                if not self._getTranslationsFile(args.outputDir, relativePath, args.uriPath, name, smartlingLocale):
+                                    allComplete = False
+                            except IOError:
+                                logging.warning("File hasn't been uploaded yet: " + args.uriPath + name)
 
         if allComplete:
             logging.info("Successfully - all source files translated!")
@@ -246,7 +249,7 @@ class SmartlingTranslations:
         outputFile = outputDir + os.path.sep + self._getLocaleFromSmartlingLocale(smartlingLocale) + os.path.sep + relativePath + fileName
 
         status = self.api.getStatus(sourceFile, smartlingLocale)
-        percentComplete = self._getPercent(status.stringCount, status.completedStringCount)
+        percentComplete = self._getPercent(status.completedStringCount, status.stringCount)
 
         if percentComplete < 100 and not self.args.allowPartial:
             logging.info("Translated %s%% (%s): %s -> %s (skipping)", percentComplete, smartlingLocale, sourceFile, outputFile)
@@ -265,7 +268,7 @@ class SmartlingTranslations:
     # Get percentage
     def _getPercent(self, count, totalCount):
         if totalCount > 0:
-            return int((count / totalCount) * 100)
+            return int ((count / float(totalCount)) * 100)
         return 0
 
     # Get Smartling locale from locale
