@@ -201,9 +201,9 @@ class SmartlingTranslations:
             logging.info("Import translation (noop): %s -> %s", absFile, uriPath + fileName)
 
     #
-    # Get Translations
+    # Download Translations
     #
-    def getTranslations(self):
+    def downloadTranslations(self):
         args = self.args
         logging.info("Downloading translated file(s) for: %s", args.dir)
         if not os.path.isdir(args.dir) and not os.path.isfile(args.dir):
@@ -237,6 +237,7 @@ class SmartlingTranslations:
                                     allComplete = False
                             except IOError:
                                 logging.warning("File hasn't been uploaded yet: " + args.uriPath + name)
+                                allComplete = False
 
         if allComplete:
             logging.info("Successfully - all source files translated!")
@@ -324,9 +325,9 @@ def uploadSource(args, directives=None):
     tool.uploadSource(directives)
 
 
-def getTranslations(args):
+def downloadTranslations(args):
     tool = SmartlingTranslations(args)
-    tool.getTranslations()
+    tool.downloadTranslations()
 
 
 def importTranslations(args, directives=None):
@@ -337,7 +338,7 @@ def importTranslations(args, directives=None):
 def main():
     logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-    parser = argparse.ArgumentParser(description="Smartling Translation Tool to upload, get, and import translation files")
+    parser = argparse.ArgumentParser(description="Smartling Translation Tool to upload, download, and import translation files")
     parser.add_argument("-k", "--apiKey", dest="apiKey", help="Smartling API key (overrides configuration file value)")
     parser.add_argument("-p", "--projectId", dest="projectId",
                         help="Smartling project ID (overrides configuration file value)")
@@ -350,14 +351,14 @@ def main():
     parser_upload.add_argument("-u", "--uriPath", dest="uriPath", help="File URI path used in Smartling system")
     parser_upload.add_argument("--run", dest="run", action="store_true", help="Run for real (default is noop)")
 
-    parser_get = subparsers.add_parser("get", help="Get the translations")
-    parser_get.add_argument("-d", "--dir", dest="dir", required=True, help="Path to English source directory of file")
-    parser_get.add_argument("-o", "--outputDir", dest="outputDir", required=True,
+    parser_download = subparsers.add_parser("download", help="Download the translations")
+    parser_download.add_argument("-d", "--dir", dest="dir", required=True, help="Path to English source directory of file")
+    parser_download.add_argument("-o", "--outputDir", dest="outputDir", required=True,
                             help="Output directory where to save translated files. Stores each translation in their own sub-directory.")
-    parser_get.add_argument("-u", "--uriPath", dest="uriPath", help="File URI path used in Smartling system")
-    parser_get.add_argument("-l", "--locale", dest="locale", help="Locale to download (default is all)")
-    parser_get.add_argument("-p", "--allowPartial", dest="allowPartial", action="store_true", help="Allow translation not 100%% complete (default is false)")
-    parser_get.add_argument("--run", dest="run", action="store_true", help="Run for real (default is noop)")
+    parser_download.add_argument("-u", "--uriPath", dest="uriPath", help="File URI path used in Smartling system")
+    parser_download.add_argument("-l", "--locale", dest="locale", help="Locale to download (default is all)")
+    parser_download.add_argument("-p", "--allowPartial", dest="allowPartial", action="store_true", help="Allow translation not 100%% complete (default is false)")
+    parser_download.add_argument("--run", dest="run", action="store_true", help="Run for real (default is noop)")
 
     parser_import = subparsers.add_parser("import", help="Import translations")
     parser_import.add_argument("-d", "--dir", dest="dir", required=True, help="Path to translations directory or file")
@@ -423,8 +424,8 @@ def main():
         uploadSource(args, directives)
 
     # Get Command
-    if args.sub_parser == "get":
-        getTranslations(args)
+    if args.sub_parser == "download":
+        downloadTranslations(args)
 
     # Import Command
     if args.sub_parser == "import":

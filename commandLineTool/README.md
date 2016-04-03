@@ -1,7 +1,7 @@
 Smartling Python Translation Tool
 =======
 
-Command line tool to upload, get, and import translation to Smartling 
+Command line tool to upload, download, and import translation to Smartling 
 
 Usage
 ----------
@@ -10,14 +10,14 @@ Usage
 $ python smartlingTool.py -h
 usage: smartlingTool.py [-h] [-k APIKEY] [-p PROJECTID]
                         [-c CONFIGFILE]
-                        {upload,get,import} ...
+                        {upload,download,import} ...
 
-Smartling Translation Tool to upload, get, and import translation files
+Smartling Translation Tool to upload, download, and import translation files
 
 positional arguments:
-  {upload,get,import}   To see individual sub command help: 'subcommand -h'
+  {upload,download,import}   To see individual sub command help: 'subcommand -h'
     upload              Upload the (English) source
-    get                 Get the translations
+    download            Download the translations
     import              Import translations
 
 optional arguments:
@@ -45,14 +45,14 @@ optional arguments:
   --run                 Run for real (default is noop)
 ```
 
-### Get
+### Download
 
 Any translation that is not 100% complete will be skipped.
 Translation which are not 100% and are download will include English in their place.
 
 ```bash
-$ python smartlingTool.py get -h
-usage: smartlingTool.py get [-h] -d DIR -o OUTPUTDIR [-u URIPATH]
+$ python smartlingTool.py download -h
+usage: smartlingTool.py download [-h] -d DIR -o OUTPUTDIR [-u URIPATH]
                             [-l LOCALE] [--run]
 
 optional arguments:
@@ -170,10 +170,10 @@ $ python smartlingTool.py upload --dir /workspace/config-ui/static/locales/en
 2014-11-03 10:44:06,209 - INFO - Upload (noop): /workspace/config-ui/static/locales/en/submission.json -> /files/config-ui/submission.json
 ```
 
-### Get
+### Download
 
 ```bash
-python smartlingTool.py get --dir /workspace/config-ui/static/locales/en --outputDir /workspace/config-ui/static/locales
+python smartlingTool.py download --dir /workspace/config-ui/static/locales/en --outputDir /workspace/config-ui/static/locales
 2014-11-03 10:44:28,670 - INFO - Downloading translated files for: /workspace/config-ui/static/locales/en
 2014-11-03 10:44:29,576 - INFO - Fetching translations (noop) for French (France) (fr-FR)
 2014-11-03 10:44:30,172 - INFO - Translated 100% (fr-FR): /files/config-ui/badges.json -> /workspace/config-ui/static/locales/fr/badges.json
