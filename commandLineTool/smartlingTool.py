@@ -268,6 +268,8 @@ class SmartlingTranslations:
 
     # Get percentage
     def _getPercent(self, count, totalCount):
+        if count == 0 and totalCount == 0:
+            return 100
         if totalCount > 0:
             return int ((count / float(totalCount)) * 100)
         return 0
