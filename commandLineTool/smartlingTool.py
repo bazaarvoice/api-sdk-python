@@ -21,7 +21,7 @@ from smartlingApiSdk.Constants import ReqMethod
 
 class SmartlingApi:
     def __init__(self, apiKey, projectId):
-        self.file_api = SmartlingFileApiFactory().getSmartlingTranslationApiProd(apiKey, projectId)
+        self.file_api = SmartlingFileApiFactory().getSmartlingTranslationApi(apiKey, projectId)
 
     # Upload a source file
     def uploadFile(self, uploadData):
@@ -136,7 +136,8 @@ class SmartlingTranslations:
             path += os.path.sep
 
         if self.args.run:
-            uploadData = UploadData(path, fileName, self._getFileType(fileName), uriPath)
+            uploadData = UploadData(path, fileName, self._getFileType(fileName))
+            uploadData.setUri(uriPath + fileName)
 
             if directives:
                 for directive, value in directives:
