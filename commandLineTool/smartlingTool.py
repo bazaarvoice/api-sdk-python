@@ -236,7 +236,7 @@ class SmartlingTranslations:
                                 if not self._getTranslationsFile(args.outputDir, relativePath, args.uriPath, name, smartlingLocale):
                                     allComplete = False
                             except IOError:
-                                logging.warning("File hasn't been uploaded yet: " + args.uriPath + name)
+                                logging.warning("File hasn't been uploaded yet: " + args.uriPath + relativePath.replace('\\', '/') + name)
                                 allComplete = False
 
         if allComplete:
