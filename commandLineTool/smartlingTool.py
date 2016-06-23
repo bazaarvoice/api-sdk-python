@@ -51,9 +51,12 @@ class SmartlingApi:
             raise IOError("Failed to import ({0}), caused by: {1}".format(code, self._getMessages(response)))
 
     # Get a translated files
-    def getFile(self, fileUri, locale):
+    def getFile(self, fileUri, locale, isPseudo=False):
         self.disableStdOut()
-        data, code = self.file_api.get(fileUri, locale)
+        if isPseudo:
+            data, code = self.file_api.get(fileUri, locale, retrievalType="pseudo")
+        else:
+            data, code = self.file_api.get(fileUri, locale)
         self.enableStdOut()
         if code == 200:
             return data
@@ -265,7 +268,7 @@ class SmartlingTranslations:
 
         logging.info("Translated %s%% (%s): %s -> %s", percentComplete, smartlingLocale, sourceFile, outputFile)
         if args.run:
-            fileData = self.api.getFile(sourceFile, smartlingLocale)
+            fileData = self.api.getFile(sourceFile, smartlingLocale, args.pseudo)
             if not os.path.isdir(os.path.dirname(outputFile)):
                 os.makedirs(os.path.dirname(outputFile))
             f = open(outputFile, 'w')
@@ -367,6 +370,7 @@ def main():
     parser_download.add_argument("-u", "--uriPath", dest="uriPath", help="File URI path used in Smartling system")
     parser_download.add_argument("-l", "--locale", dest="locale", help="Locale to download (default is all)")
     parser_download.add_argument("-p", "--allowPartial", dest="allowPartial", action="store_true", help="Allow translation not 100%% complete (default is false)")
+    parser_download.add_argument("-s", "--pseudo", dest="pseudo", action="store_true", help="Download pseudo translations")
     parser_download.add_argument("--run", dest="run", action="store_true", help="Run for real (default is noop)")
 
     parser_import = subparsers.add_parser("import", help="Import translations")
@@ -424,6 +428,11 @@ def main():
             fileExtensionArray = fileExtensions.split(",")
             if len(fileExtensionArray) > 0:
                 args.filterFileExtensions = fileExtensionArray
+
+    # Pseudo argument
+    if args.pseudo:
+        args.allowPartial = True
+
 
     # Upload Command
     if args.sub_parser == "upload":

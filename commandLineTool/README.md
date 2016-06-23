@@ -53,7 +53,7 @@ Translation which are not 100% and are download will include English in their pl
 ```bash
 $ python smartlingTool.py download -h
 usage: smartlingTool.py download [-h] -d DIR -o OUTPUTDIR [-u URIPATH]
-                            [-l LOCALE] [--run]
+                                 [-l LOCALE] [-p] [-s] [--run]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -65,6 +65,8 @@ optional arguments:
                         File URI path used in Smartling system
   -l LOCALE, --locale LOCALE
                         Locale to download (default is all)
+  -p, --allowPartial    Allow translation not 100% complete (default is false)
+  -s, --pseudo          Download pseudo translations
   --run                 Run for real (default is noop)
 ```
 
