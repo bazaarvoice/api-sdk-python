@@ -143,12 +143,18 @@ class SmartlingTranslations:
                 for directive, value in directives:
                     uploadData.addDirective(SmartlingDirective(directive, value))
 
-            stats = self.api.uploadFile(uploadData)
-            logging.info("Uploaded: %s -> %s (Word count = %s  New source = %s)",
-                         absFile,
-                         uriPath + fileName,
-                         stats.wordCount,
-                         "No" if stats.overWritten else "Yes")
+            try:
+                stats = self.api.uploadFile(uploadData)
+                logging.info("Uploaded: %s -> %s (Word count = %s  New source = %s)",
+                             absFile,
+                             uriPath + fileName,
+                             stats.wordCount,
+                             "No" if stats.overWritten else "Yes")
+            except IOError as ex:
+                if "No source strings found" in str(ex):
+                    logging.warn("No source strings found: %s", absFile)
+                else:
+                    raise ex
         else:
             logging.info("Upload (noop): %s -> %s", os.path.join(path, fileName), uriPath + fileName)
 
