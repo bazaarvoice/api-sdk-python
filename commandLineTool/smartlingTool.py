@@ -429,10 +429,6 @@ def main():
             if len(fileExtensionArray) > 0:
                 args.filterFileExtensions = fileExtensionArray
 
-    # Pseudo argument
-    if args.pseudo:
-        args.allowPartial = True
-
 
     # Upload Command
     if args.sub_parser == "upload":
@@ -443,6 +439,9 @@ def main():
 
     # Get Command
     if args.sub_parser == "download":
+        # Pseudo argument
+        if args.pseudo:
+            args.allowPartial = True
         downloadTranslations(args)
 
     # Import Command
